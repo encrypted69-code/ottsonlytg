@@ -1,0 +1,94 @@
+{
+  "1761423331": {
+    "id": 1761423331,
+    "name": "Arjun",
+    "wallet": 0,
+    "subscriptions": [],
+    "joined_at": "2025-11-08T15:11:06.221719",
+    "referred_by": null
+  },
+  "7127370646": {
+    "id": 7127370646,
+    "name": "Admin",
+    "wallet": 5000,
+    "subscriptions": [],
+    "joined_at": "2025-11-10T11:58:00.710629",
+    "referred_by": null,
+    "referrals": [],
+    "processed_payments": [
+      "M-7127370646-20260104003705",
+      "M-7127370646-20260104003947",
+      "M-7127370646-20260104014146",
+      "M-7127370646-20260104033432"
+    ]
+  },
+  "999999": {
+    "id": 999999,
+    "name": "TestUser",
+    "wallet": 49,
+    "subscriptions": [],
+    "joined_at": "2025-11-10T12:22:03.661842",
+    "referred_by": null,
+    "referrals": [],
+    "processed_payments": [
+      "pay_test123"
+    ]
+  },
+  "5392944645": {
+    "id": 5392944645,
+    "name": "H P",
+    "wallet": 0,
+    "subscriptions": [],
+    "joined_at": "2026-01-03T19:14:51.792837",
+    "referred_by": null,
+    "referrals": []
+  },
+  "1266482074": {
+    "id": 1266482074,
+    "name": "\uff2d\uff35\uff28\uff21\uff2d\uff2d\uff25\uff24\uff0e\uff2b",
+    "wallet": 0,
+    "subscriptions": [],
+    "joined_at": "2026-01-03T19:20:26.508679",
+    "referred_by": null,
+    "referrals": []
+  },
+  "1724484506": {
+    "id": 1724484506,
+    "name": "Flowh",
+    "wallet": 0,
+    "subscriptions": [],
+    "joined_at": "2026-01-03T20:32:39.039001",
+    "referred_by": null,
+    "referrals": []
+  },
+  "1296979189": {
+    "id": 1296979189,
+    "name": "\u0939\u0930sh?",
+    "wallet": 0,
+    "subscriptions": [],
+    "joined_at": "2026-01-03T20:32:54.873336",
+    "referred_by": null,
+    "referrals": []
+  },
+  "5305995043": {
+    "id": 5305995043,
+    "name": "Anuj Gautam",
+    "wallet": 0,
+    "subscriptions": [],
+    "joined_at": "2026-01-03T20:33:55.263810",
+    "referred_by": null,
+    "referrals": []
+  },
+  "6057768840": {
+    "id": 6057768840,
+    "name": "\ud835\udc0c\ud835\udc1a\ud835\udc2c\ud835\udc2d\ud835\udc1e\ud835\udc2b",
+    "wallet": 0,
+    "subscriptions": [],
+    "joined_at": "2026-01-03T20:41:55.850120",
+    "referred_by": null,
+    "referrals": [],
+    "processed_payments": [
+      "M-6057768840-20260104021205"
+    ]
+  }
+}

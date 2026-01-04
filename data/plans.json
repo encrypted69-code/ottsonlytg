@@ -1,0 +1,74 @@
+{
+  "netflix_4k": {
+    "plan_key": "netflix_4k",
+    "ott_name": "Netflix 4K",
+    "price": 99,
+    "description": "Private Single Screen | Supports TV/Laptop/Mobile | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:00:29.359704"
+  },
+  "prime_video": {
+    "plan_key": "prime_video",
+    "ott_name": "Prime Video",
+    "price": 45,
+    "description": "Private Single Screen | Full HD Quality | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:00:29.359704"
+  },
+  "youtube": {
+    "plan_key": "youtube",
+    "ott_name": "YouTube Premium",
+    "price": 15,
+    "description": "Delivered to Gmail | Ad-Free YouTube + Music | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:00:29.359704"
+  },
+  "spotify": {
+    "plan_key": "spotify",
+    "ott_name": "Spotify Premium",
+    "price": 29,
+    "description": "Private Account | Ad-Free Music | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:00:29.359704"
+  },
+  "sonyliv": {
+    "plan_key": "sonyliv",
+    "ott_name": "Sony Liv",
+    "price": 39,
+    "description": "Private Account | Sports + Movies | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:00:29.359704"
+  },
+  "zee5": {
+    "plan_key": "zee5",
+    "ott_name": "Zee5 Premium",
+    "price": 35,
+    "description": "Private Account | Movies + TV Shows | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:00:29.359704"
+  },
+  "combo": {
+    "plan_key": "combo",
+    "ott_name": "Combo Pack",
+    "price": 99,
+    "description": "Multiple OTT Platforms | Best Value | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:05:07.548642"
+  },
+  "pornhub": {
+    "plan_key": "pornhub",
+    "ott_name": "Pornhub Premium",
+    "price": 49,
+    "description": "Private Account | HD Content | 1 Month",
+    "stock": 0,
+    "active": true,
+    "created_at": "2026-01-04T01:05:07.548642"
+  }
+}

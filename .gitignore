@@ -1,0 +1,102 @@
+# =====================================================
+# GITIGNORE FOR TELEGRAM OTT BOT
+# =====================================================
+
+# Environment Variables (CRITICAL - NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Telegram Session Files (CRITICAL - Contains auth tokens)
+*.session
+*.session-journal
+
+# Temporary/Setup Scripts (one-time use)
+migrate_to_supabase.py
+add_test_stocks.py
+add_10_test_credentials.py
+check_plans.py
+fix_netflix_duplicates.py
+update_netflix_credentials.py
+update_prime_credentials.py
+update_pornhub_credentials.py
+remove_test_credentials.py
+fix_prime_single_credential.py
+check_stocks.py
+setup_logs_table.py
+
+# Logs
+*.log
+
+# OS Files
+Thumbs.db
+
+# Session Files
+*.session
+*.session-journal
+
+# Logs
+*.log
+logs/
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+
+# Backup Files
+*.bak
+backup/
+
+# OS Files
+Thumbs.db
+.DS_Store
+
+# Sensitive Files
+config.json
+secrets.json
+credentials.json
+
+# Test Files
+test_*.db
+*.test
+
+# Database dumps
+*.sql.backup
+*.dump
