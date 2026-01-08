@@ -73,4 +73,4 @@ PAYMENT_CHECK_INTERVAL = 15  # seconds
 # ================================
 # 📢 LOGGING CHANNEL
 # ================================
-LOG_CHANNEL_ID = -4758912978  # ✅ Use this exact name (no 'S')
+LOG_CHANNEL_ID = -1003310219165  # ✅ Updated after group migration to supergroup
