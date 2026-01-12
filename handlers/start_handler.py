@@ -52,8 +52,9 @@ def register_start(dp):
         kb.add(
             InlineKeyboardButton(toSmallCaps("💳 Add Funds"), callback_data="menu_add_funds"),
             InlineKeyboardButton(toSmallCaps("🎬 Buy OTTs"), callback_data="menu_buy_otts"),
-            InlineKeyboardButton(toSmallCaps("📚 Tutorial"), url="https://t.me/+yEMiVMf-mkBmOWE1"),
+            InlineKeyboardButton(toSmallCaps("🎁 Refer & Earn"), callback_data="menu_refer"),
             InlineKeyboardButton(toSmallCaps("👤 Profile"), callback_data="menu_profile"),
+            InlineKeyboardButton(toSmallCaps("📚 Tutorial"), url="https://t.me/+yEMiVMf-mkBmOWE1"),
             InlineKeyboardButton(toSmallCaps("💬 Support"), url="https://t.me/ottsonly1")
         )
 
@@ -63,12 +64,13 @@ def register_start(dp):
     # ========== BACK TO MAIN MENU ==========
     @dp.callback_query_handler(lambda c: c.data == "back_to_main")
     async def back_to_main(callback_query: types.CallbackQuery):
-        kb = InlineKeyboardMarkup(row_width=1)
+        kb = InlineKeyboardMarkup(row_width=2)
         kb.add(
             InlineKeyboardButton(toSmallCaps("💳 Add Funds"), callback_data="menu_add_funds"),
             InlineKeyboardButton(toSmallCaps("🎬 Buy OTT Subscriptions"), callback_data="menu_buy_otts"),
-            InlineKeyboardButton(toSmallCaps("📚 Tutorial"), url="https://t.me/+yEMiVMf-mkBmOWE1"),
+            InlineKeyboardButton(toSmallCaps("🎁 Refer & Earn"), callback_data="menu_refer"),
             InlineKeyboardButton(toSmallCaps("👤 Profile"), callback_data="menu_profile"),
+            InlineKeyboardButton(toSmallCaps("📚 Tutorial"), url="https://t.me/+yEMiVMf-mkBmOWE1"),
             InlineKeyboardButton(toSmallCaps("💬 Support"), url="https://t.me/ottsonly1")
         )
         await callback_query.message.edit_text(

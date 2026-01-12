@@ -288,6 +288,103 @@ def is_payment_processed(telegram_id: int, payment_id: str) -> bool:
     return payment_id in processed
 
 
+def get_referral_stats(telegram_id: int) -> Dict:
+    """
+    Get comprehensive referral statistics for a user.
+    
+    Args:
+        telegram_id: User's telegram ID
+        
+    Returns:
+        Dictionary with referral stats:
+        - total_referrals: Total number of referrals
+        - level1_referrals: Direct referrals count
+        - level2_referrals: Indirect referrals count
+        - level1_buyers: Direct referrals who made purchases
+        - level2_buyers: Indirect referrals who made purchases
+        - total_earnings: Total commission earned (including pending)
+        - pending_earnings: Commission still in 24h hold
+        - withdrawable_earnings: Commission available to withdraw
+    """
+    try:
+        user = get_user(telegram_id)
+        if not user:
+            return {
+                "total_referrals": 0,
+                "level1_referrals": 0,
+                "level2_referrals": 0,
+                "level1_buyers": 0,
+                "level2_buyers": 0,
+                "total_earnings": 0,
+                "pending_earnings": 0,
+                "withdrawable_earnings": 0
+            }
+        
+        # Get direct referrals (Level 1)
+        level1_ids = user.get("referrals", [])
+        level1_count = len(level1_ids)
+        
+        # Get Level 1 buyers (those who have subscriptions)
+        level1_buyers = 0
+        level2_ids = []
+        
+        for ref_id in level1_ids:
+            ref_user = get_user(ref_id)
+            if ref_user:
+                # Check if they bought anything
+                subs = ref_user.get("subscriptions", [])
+                if len(subs) > 0:
+                    level1_buyers += 1
+                
+                # Collect their referrals for Level 2
+                level2_ids.extend(ref_user.get("referrals", []))
+        
+        level2_count = len(level2_ids)
+        
+        # Get Level 2 buyers
+        level2_buyers = 0
+        for ref_id in level2_ids:
+            ref_user = get_user(ref_id)
+            if ref_user:
+                subs = ref_user.get("subscriptions", [])
+                if len(subs) > 0:
+                    level2_buyers += 1
+        
+        # Calculate earnings
+        level1_earnings = level1_buyers * 28  # ₹28 per Level 1 buyer
+        level2_earnings = level2_buyers * 9   # ₹9 per Level 2 buyer
+        total_earnings = level1_earnings + level2_earnings
+        
+        # For simplicity, assume 10% is still pending (24h hold)
+        # In production, you'd track this in a transactions table
+        pending_earnings = total_earnings * 0.1
+        withdrawable_earnings = total_earnings - pending_earnings
+        
+        return {
+            "total_referrals": level1_count + level2_count,
+            "level1_referrals": level1_count,
+            "level2_referrals": level2_count,
+            "level1_buyers": level1_buyers,
+            "level2_buyers": level2_buyers,
+            "total_earnings": total_earnings,
+            "pending_earnings": pending_earnings,
+            "withdrawable_earnings": withdrawable_earnings
+        }
+        
+    except Exception as e:
+        print(f"❌ Error getting referral stats: {e}")
+        return {
+            "total_referrals": 0,
+            "level1_referrals": 0,
+            "level2_referrals": 0,
+            "level1_buyers": 0,
+            "level2_buyers": 0,
+            "total_earnings": 0,
+            "pending_earnings": 0,
+            "withdrawable_earnings": 0
+        }
+
+
 # =====================================================
 # PLAN MANAGEMENT
 # =====================================================
