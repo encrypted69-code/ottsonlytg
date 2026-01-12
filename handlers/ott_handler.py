@@ -8,7 +8,7 @@ from utils.supabase_db import (
     get_unused_credential, mark_credential_used, create_transaction,
     allocate_combo_credentials, update_wallet
 )
-from utils.log_utils import send_log
+from utils.log_utils import log_event
 from utils.text_utils import toSmallCaps
 import random
 from datetime import datetime, timedelta
@@ -262,12 +262,13 @@ def register_ott(dp):
                     ),
                     parse_mode="HTML"
                 )
-                await send_log(
-                    f"⚠️ *Combo Out Of Stock*\n"
-                    f"User: `{uid}` (@{username})\n"
-                    f"Missing: {missing}\n"
-                    f"Refunded: ₹{price}"
-                )
+                await log_event("PURCHASE_FAILED", {
+                    "user_id": uid,
+                    "name": message.from_user.full_name,
+                    "username": username,
+                    "plan_name": "Combo Plan",
+                    "reason": f"Out of stock - Missing: {missing}"
+                })
                 await callback_query.answer()
                 return
 
@@ -363,15 +364,13 @@ def register_ott(dp):
                 )
 
             # Log combo purchase
-            new_balance = get_wallet_balance(uid)
-            await send_log(
-                f"🎁 *Combo Purchase*\n\n"
-                f"USER: `{uid}`\n"
-                f"USERNAME: @{username}\n"
-                f"SERVICES: {', '.join(credentials.keys())}\n"
-                f"PRICE: ₹{price}\n"
-                f"NEW BALANCE: ₹{new_balance}"
-            )
+            await log_event("PURCHASE_SUCCESS", {
+                "user_id": uid,
+                "name": message.from_user.full_name,
+                "username": username,
+                "plan_name": "Combo Plan",
+                "price": price
+            })
             
             await callback_query.answer()
             return
@@ -384,7 +383,13 @@ def register_ott(dp):
                 toSmallCaps("<b>❌ Out Of Stock!\n\nThis Plan Is Temporarily Unavailable. Please Check Back Later.</b>"),
                 parse_mode="HTML"
             )
-            await send_log(f"⚠️ *Out Of Stock*\nPlan: {db_plan['ott_name']}\nUser: `{uid}` (@{username})")
+            await log_event("PURCHASE_FAILED", {
+                "user_id": uid,
+                "name": callback_query.from_user.full_name,
+                "username": username,
+                "plan_name": db_plan['ott_name'],
+                "reason": "Out of stock"
+            })
             await callback_query.answer()
             return
 
@@ -396,9 +401,13 @@ def register_ott(dp):
                 toSmallCaps("<b>❌ Insufficient Wallet Balance! Please Add Funds First.</b>"),
                 parse_mode="HTML"
             )
-            await send_log(
-                f"❌ *Purchase Failed:* `{uid}` tried to buy {plan['name']} (₹{price}) but only had ₹{bal}."
-            )
+            await log_event("PURCHASE_FAILED", {
+                "user_id": uid,
+                "name": callback_query.from_user.full_name,
+                "username": username,
+                "plan_name": plan['name'],
+                "reason": f"Insufficient balance - Has ₹{bal}, needs ₹{price}"
+            })
             await callback_query.answer()
             return
 
@@ -464,15 +473,13 @@ def register_ott(dp):
             reply_markup=feedback_kb
         )
 
-        await send_log(
-            f"🎬 *OTT Purchase Log*\n\n"
-            f"USER : `{uid}`\n"
-            f"USERNAME : @{username}\n"
-            f"PURCHASED : {plan['name']}\n"
-            f"CREDENTIALS : `{credential}`\n"
-            f"UPDATED BALANCE : ₹{new_balance}\n"
-            f"ORDER ID : {order_id}"
-        )
+        await log_event("PURCHASE_SUCCESS", {
+            "user_id": uid,
+            "name": callback_query.from_user.full_name,
+            "username": username,
+            "plan_name": plan['name'],
+            "price": price
+        })
         await callback_query.answer()
 
 

@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from utils.supabase_db import create_user_if_not_exists
-from utils.log_utils import send_log
+from utils.supabase_db import create_user_if_not_exists, get_user
+from utils.log_utils import log_event
 from config.settings import REFERRAL_BASE_URL
 from utils.text_utils import toSmallCaps
 
@@ -18,6 +18,11 @@ def register_start(dp):
         args = message.get_args()
         user_id = message.from_user.id
         name = message.from_user.full_name
+        username = message.from_user.username
+
+        # Check if user exists
+        existing_user = get_user(user_id)
+        is_new_user = existing_user is None
 
         # Create user if not exists
         user = create_user_if_not_exists(user_id, name)
@@ -26,13 +31,21 @@ def register_start(dp):
         if args and args.isdigit():
             referrer_id = int(args)
             if referrer_id != user_id and not user.get("referred_by"):
-                from utils.supabase_db import set_referred_by
+                from utils.supabase_db import set_referred_by, get_user as get_referrer
                 set_referred_by(user_id, referrer_id)
-                await send_log(
-                    f"👥 *Referral Linked*\n\n"
-                    f"New User: `{user_id}`\n"
-                    f"Referred By: `{referrer_id}`"
-                )
+                
+                # Get referrer info
+                referrer = get_referrer(referrer_id)
+                referrer_name = referrer.get("name", "Unknown") if referrer else "Unknown"
+                
+                # Log referral join
+                await log_event("REFERRAL_JOIN", {
+                    "user_id": user_id,
+                    "name": name,
+                    "username": username,
+                    "referrer_id": referrer_id,
+                    "referrer_name": referrer_name
+                })
 
         # Referral link for user
         referral_link = f"{REFERRAL_BASE_URL}{user_id}"
@@ -59,7 +72,7 @@ def register_start(dp):
         )
 
         await message.answer(welcome_text, parse_mode="HTML", reply_markup=kb)
-        await send_log(f"👤 *New user started the bot:* `{user_id}` - {name}")
+        # Removed noisy /start log - only log referral joins
 
     # ========== BACK TO MAIN MENU ==========
     @dp.callback_query_handler(lambda c: c.data == "back_to_main")

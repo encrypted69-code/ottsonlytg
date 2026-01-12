@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ott_referral_db
+    environment:
+      POSTGRES_DB: ottsonly_referral
+      POSTGRES_USER: ottadmin
+      POSTGRES_PASSWORD: changeme_in_production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - ott_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ottadmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ott_referral_backend
+    environment:
+      DATABASE_URL: postgresql://ottadmin:changeme_in_production@postgres:5432/ottsonly_referral
+      SECRET_KEY: your-super-secret-key-change-in-production
+      FRONTEND_URL: http://localhost:3000
+      SUPER_ADMIN_TELEGRAM_ID: 123456789
+      SUPER_ADMIN_PASSWORD: admin123
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ott_network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ott_referral_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - ott_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  ott_network:
+    driver: bridge

@@ -71,6 +71,8 @@ PAYMENT_CHECK_INTERVAL = 15  # seconds
 
 
 # ================================
-# 📢 LOGGING CHANNEL
+# 📢 LOGGING CHANNELS
 # ================================
-LOG_CHANNEL_ID = -1003310219165  # ✅ Updated after group migration to supergroup
+BUSINESS_LOGS_CHANNEL = -1003638690910  # Wallet top-ups & purchases
+ERROR_LOGS_CHANNEL = -1003597348561     # Failed purchases & system errors
+REFERRAL_LOGS_CHANNEL = -1003502022065  # Referral activity & commissions

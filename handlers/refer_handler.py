@@ -3,9 +3,10 @@ import time
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import Dispatcher
-from config.settings import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, LOG_CHANNEL_ID
+from config.settings import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 from utils.supabase_db import update_wallet, get_user
 from utils.text_utils import toSmallCaps
+from utils.log_utils import log_event
 
 
 def register_wallet_handlers(dp: Dispatcher):
@@ -75,7 +76,8 @@ def register_wallet_handlers(dp: Dispatcher):
         _, order_id, amount = callback.data.split("_")
         amount = int(amount)
         user_id = callback.from_user.id
-        username = callback.from_user.username or "N/A"
+        name = callback.from_user.full_name
+        username = callback.from_user.username
 
         await callback.message.edit_text(toSmallCaps("<b>⏳ Verifying Your Payment...</b>"), parse_mode="HTML")
 
@@ -109,6 +111,15 @@ def register_wallet_handlers(dp: Dispatcher):
                 parse_mode="HTML"
             )
 
+            # Log wallet top-up
+            await log_event("WALLET_TOPUP_SUCCESS", {
+                "user_id": user_id,
+                "name": name,
+                "username": username,
+                "amount": amount,
+                "order_id": order_id
+            })
+
             # 🪙 Referral reward (10%)
             referrer_id = user.get("referred_by")
             if referrer_id:
@@ -116,6 +127,28 @@ def register_wallet_handlers(dp: Dispatcher):
                 update_wallet(referrer_id, reward)
                 ref_user = get_user(referrer_id)
                 ref_balance = ref_user.get("wallet", 0)
+                ref_name = ref_user.get("name", "Unknown")
+
+                # Log referred user top-up
+                await log_event("REFERRAL_TOPUP", {
+                    "user_id": user_id,
+                    "name": name,
+                    "username": username,
+                    "referrer_id": referrer_id,
+                    "referrer_name": ref_name,
+                    "amount": amount
+                })
+
+                # Log referral credit
+                await log_event("REFERRAL_CREDIT", {
+                    "user_id": referrer_id,
+                    "name": ref_name,
+                    "username": ref_user.get("telegram_id"),  # Will show ID
+                    "commission": reward,
+                    "level": 1,
+                    "buyer_id": user_id,
+                    "buyer_name": name
+                })
 
                 # Notify referrer
                 try:
@@ -129,27 +162,6 @@ def register_wallet_handlers(dp: Dispatcher):
                     )
                 except Exception:
                     pass  # user may have blocked bot
-
-                # Log referral reward
-                log_ref = (
-                    f"💸 *Referral Bonus*\n\n"
-                    f"PARENT : `{referrer_id}`\n"
-                    f"CHILD : `{user_id}`\n"
-                    f"BONUS : ₹{reward}\n"
-                    f"CHILD DEPOSIT : ₹{amount}"
-                )
-                await callback.bot.send_message(LOG_CHANNEL_ID, log_ref, parse_mode="Markdown")
-
-            # 🧾 Log deposit
-            log_message = (
-                f"✅ *Deposit Log*\n\n"
-                f"USER : `{user_id}`\n"
-                f"USERNAME : @{username}\n"
-                f"DEPOSITED : ₹{amount}\n"
-                f"NEW BALANCE : ₹{new_balance}\n"
-                f"ORDER ID : {order_id}"
-            )
-            await callback.bot.send_message(LOG_CHANNEL_ID, log_message, parse_mode="Markdown")
 
         else:
             await callback.message.answer(

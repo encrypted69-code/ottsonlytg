@@ -1,7 +1,6 @@
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from utils.supabase_db import get_user, get_referral_stats
-from utils.log_utils import send_log
 from utils.text_utils import toSmallCaps
 from config.settings import REFERRAL_BASE_URL
 
@@ -42,9 +41,7 @@ def register_profile(dp):
         kb.add(InlineKeyboardButton(toSmallCaps("⬅️ Back to Menu"), callback_data="back_to_main"))
 
         await callback_query.message.edit_text(profile_text, parse_mode="HTML", reply_markup=kb)
-
-        # Log profile view
-        await send_log(f"👤 *Profile Viewed*\nUser: `{user_id}` | Wallet: ₹{wallet}")
+        # Removed noisy profile view log
 
         await callback_query.answer()
 

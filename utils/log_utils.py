@@ -1,329 +1,224 @@
+"""
+CENTRALIZED LOGGING SYSTEM
+===========================
+Clean, professional logging with 3 separate channels:
+- BUSINESS_LOGS: Wallet top-ups & purchases
+- ERROR_LOGS: Failed purchases & system errors
+- REFERRAL_LOGS: Referral activity & commissions
+"""
+
 import asyncio
 from datetime import datetime
 from aiogram import Bot
-from config.settings import BOT_TOKEN, LOG_CHANNEL_ID
-from typing import Optional
+from config.settings import (
+    BOT_TOKEN,
+    BUSINESS_LOGS_CHANNEL,
+    ERROR_LOGS_CHANNEL,
+    REFERRAL_LOGS_CHANNEL
+)
+from typing import Optional, Dict, Any
+
+# Track logged users to prevent duplicate USER_JOIN logs
+_logged_users = set()
 
 
-def format_timestamp() -> str:
-    """Returns formatted timestamp: DD/MM/YYYY HH:MM:SS"""
+def _format_time() -> str:
+    """Returns formatted timestamp"""
     return datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
 
-def format_user(user_id: int, username: Optional[str] = None) -> str:
-    """Formats user info consistently"""
-    if username:
-        return f"@{username} (ID: `{user_id}`)"
-    return f"ID: `{user_id}`"
+def _format_user(user_id: int, name: str = None, username: str = None) -> str:
+    """
+    Format user identity consistently.
+    Always includes: User ID, Name, Username (or N/A)
+    """
+    username_display = f"@{username}" if username else "N/A"
+    name_display = name if name else "Unknown"
+    return f"👤 User ID: `{user_id}`\n👤 Name: {name_display}\n👤 Username: {username_display}"
 
 
-async def send_log(message: str):
-    """
-    Sends a formatted log message to the configured Telegram log channel.
-    Automatically handles errors and safely closes the bot session.
-    """
+async def _send_to_channel(channel_id: int, message: str):
+    """Internal function to send message to specific channel"""
     bot = Bot(token=BOT_TOKEN)
     try:
-        # Prevent sending overly long messages
         if len(message) > 4000:
-            message = message[:4000] + "\n\n[⚠️ Log truncated due to length]"
-
+            message = message[:4000] + "\n\n⚠️ [Truncated]"
+        
         await bot.send_message(
-            chat_id=LOG_CHANNEL_ID,
+            chat_id=channel_id,
             text=message,
             parse_mode="Markdown"
         )
-
     except Exception as e:
-        # More specific error handling
-        if "LOGS_CHANNEL_ID" in str(e):
-            print(f"[LOG ERROR] Channel ID configuration issue (using LOG_CHANNEL_ID): {e}")
-        elif "parse entities" in str(e).lower():
-            # Fallback: try sending without markdown if parsing fails
-            try:
-                await bot.send_message(
-                    chat_id=LOG_CHANNEL_ID,
-                    text=message.replace("*", "").replace("`", "").replace("_", ""),
-                    parse_mode=None
-                )
-            except:
-                print(f"[LOG ERROR] Failed to send log even without markdown: {e}")
-        else:
-            print(f"[LOG ERROR] Failed to send log message: {e}")
-
+        print(f"[LOG ERROR] Failed to send to channel {channel_id}: {e}")
     finally:
-        # ✅ Proper way to close the bot session in Aiogram 2.23+
         try:
             session = await bot.get_session()
             await session.close()
-        except Exception:
-            pass  # Ignore session close errors
+        except:
+            pass
 
 
 # =====================================================
-# USER EVENTS
+# CENTRALIZED LOG EVENT FUNCTION
 # =====================================================
 
-async def log_user_start(user_id: int, username: Optional[str] = None, is_new: bool = False):
-    """Log when a user starts the bot"""
-    emoji = "🆕" if is_new else "👤"
-    event = "NEW USER REGISTERED" if is_new else "USER STARTED BOT"
-    
-    message = (
-        f"{emoji} *{event}*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_user_blocked(user_id: int, username: Optional[str] = None):
-    """Log when a user blocks the bot"""
-    message = (
-        f"🚫 *USER BLOCKED BOT*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-# =====================================================
-# PAYMENT EVENTS
-# =====================================================
-
-async def log_payment_pending(user_id: int, username: Optional[str], amount: int, order_id: str):
-    """Log when payment QR is generated and waiting"""
-    message = (
-        f"⏳ *PAYMENT PENDING*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Amount: ₹{amount}\n"
-        f"Order ID: `{order_id}`\n"
-        f"Status: Waiting for payment\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_payment_success(user_id: int, username: Optional[str], amount: int, order_id: str, utr: Optional[str] = None):
-    """Log successful payment"""
-    utr_text = f"UTR: `{utr}`\n" if utr else ""
-    message = (
-        f"✅ *PAYMENT SUCCESSFUL*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Amount: ₹{amount}\n"
-        f"Order ID: `{order_id}`\n"
-        f"{utr_text}"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_payment_failed(user_id: int, username: Optional[str], amount: int, order_id: str, reason: str):
-    """Log failed payment"""
-    message = (
-        f"❌ *PAYMENT FAILED*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Amount: ₹{amount}\n"
-        f"Order ID: `{order_id}`\n"
-        f"Reason: {reason}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_payment_timeout(user_id: int, username: Optional[str], amount: int, order_id: str):
-    """Log payment timeout/expiration"""
-    message = (
-        f"⏱️ *PAYMENT TIMEOUT*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Amount: ₹{amount}\n"
-        f"Order ID: `{order_id}`\n"
-        f"Status: Payment expired without completion\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-# =====================================================
-# PURCHASE EVENTS
-# =====================================================
-
-async def log_purchase_success(user_id: int, username: Optional[str], plan_name: str, price: int, order_id: str, new_balance: int):
-    """Log successful OTT purchase"""
-    message = (
-        f"🛒 *OTT PURCHASE SUCCESS*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Plan: {plan_name}\n"
-        f"Price: ₹{price}\n"
-        f"Order ID: `{order_id}`\n"
-        f"Updated Balance: ₹{new_balance}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_purchase_failed(user_id: int, username: Optional[str], plan_name: str, reason: str):
-    """Log failed purchase"""
-    message = (
-        f"❌ *PURCHASE FAILED*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Plan: {plan_name}\n"
-        f"Reason: {reason}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_stock_unavailable(user_id: int, username: Optional[str], plan_name: str):
-    """Log when stock is unavailable"""
-    message = (
-        f"📦 *STOCK UNAVAILABLE*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Plan: {plan_name}\n"
-        f"⚠️ No credentials available\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_combo_partial_failure(user_id: int, username: Optional[str], allocated: list, missing: list):
-    """Log combo plan partial failure"""
-    message = (
-        f"⚠️ *COMBO PLAN PARTIAL FAILURE*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"✅ Allocated: {', '.join(allocated)}\n"
-        f"❌ Missing: {', '.join(missing)}\n"
-        f"Status: Refunded\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-# =====================================================
-# QR / PAYMENT FLOW EVENTS
-# =====================================================
-
-async def log_qr_generated(user_id: int, username: Optional[str], amount: int, order_id: str):
-    """Log QR code generation"""
-    message = (
-        f"📱 *QR CODE GENERATED*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Amount: ₹{amount}\n"
-        f"Order ID: `{order_id}`\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_qr_reused(user_id: int, username: Optional[str], order_id: str):
-    """Log when user tries to reuse old QR"""
-    message = (
-        f"♻️ *QR REUSE ATTEMPT*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Order ID: `{order_id}`\n"
-        f"Action: Redirected to new QR\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-# =====================================================
-# ERROR EVENTS
-# =====================================================
-
-async def log_error(error_type: str, details: str, user_id: Optional[int] = None, username: Optional[str] = None):
-    """Log system errors"""
-    user_info = f"User: {format_user(user_id, username)}\n" if user_id else ""
-    
-    message = (
-        f"🔴 *SYSTEM ERROR*\n\n"
-        f"Type: {error_type}\n"
-        f"{user_info}"
-        f"Details: {details}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_database_error(operation: str, details: str, user_id: Optional[int] = None):
-    """Log database-specific errors"""
-    user_info = f"User ID: `{user_id}`\n" if user_id else ""
-    
-    message = (
-        f"💾 *DATABASE ERROR*\n\n"
-        f"Operation: {operation}\n"
-        f"{user_info}"
-        f"Details: {details}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-# =====================================================
-# WALLET EVENTS
-# =====================================================
-
-async def log_wallet_credit(user_id: int, username: Optional[str], amount: int, new_balance: int, source: str):
-    """Log wallet credit"""
-    message = (
-        f"💰 *WALLET CREDITED*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Amount: ₹{amount}\n"
-        f"Source: {source}\n"
-        f"New Balance: ₹{new_balance}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-async def log_wallet_debit(user_id: int, username: Optional[str], amount: int, new_balance: int, reason: str):
-    """Log wallet debit"""
-    message = (
-        f"💸 *WALLET DEBITED*\n\n"
-        f"User: {format_user(user_id, username)}\n"
-        f"Amount: ₹{amount}\n"
-        f"Reason: {reason}\n"
-        f"New Balance: ₹{new_balance}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-# =====================================================
-# REFERRAL EVENTS
-# =====================================================
-
-async def log_referral(referrer_id: int, referrer_username: Optional[str], new_user_id: int, new_user_username: Optional[str]):
-    """Log successful referral"""
-    message = (
-        f"🎁 *REFERRAL LINKED*\n\n"
-        f"Referrer: {format_user(referrer_id, referrer_username)}\n"
-        f"New User: {format_user(new_user_id, new_user_username)}\n"
-        f"Time: `{format_timestamp()}`"
-    )
-    await send_log(message)
-
-
-def send_log_sync(message: str):
+async def log_event(event_type: str, payload: Dict[str, Any]):
     """
-    Synchronous wrapper for send_log().
-    Useful for calling logs from non-async contexts (e.g., Razorpay callbacks).
+    Centralized logging function.
+    
+    Event Types:
+    - USER_JOIN: First time user registration
+    - WALLET_TOPUP_SUCCESS: Successful wallet top-up
+    - PURCHASE_SUCCESS: Successful OTT purchase
+    - PURCHASE_FAILED: Failed purchase
+    - PAYMENT_ERROR: Payment gateway error
+    - REFERRAL_JOIN: User joined via referral
+    - REFERRAL_TOPUP: Referred user topped up wallet
+    - REFERRAL_CREDIT: Commission credited to referrer
+    - SYSTEM_ERROR: Critical system error
     """
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            asyncio.ensure_future(send_log(message))
-        else:
-            loop.run_until_complete(send_log(message))
-    except Exception as e:
-        print(f"[LOG SYNC ERROR] {e}")
+    
+    user_id = payload.get("user_id")
+    name = payload.get("name", "Unknown")
+    username = payload.get("username")
+    
+    # ==================== BUSINESS LOGS ====================
+    
+    if event_type == "WALLET_TOPUP_SUCCESS":
+        amount = payload.get("amount", 0)
+        order_id = payload.get("order_id", "N/A")
+        
+        message = (
+            f"💰 *WALLET TOP-UP SUCCESS*\n\n"
+            f"{_format_user(user_id, name, username)}\n"
+            f"💵 Amount: ₹{amount}\n"
+            f"🆔 Order ID: `{order_id}`\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(BUSINESS_LOGS_CHANNEL, message)
+    
+    elif event_type == "PURCHASE_SUCCESS":
+        plan_name = payload.get("plan_name", "Unknown Plan")
+        price = payload.get("price", 0)
+        
+        message = (
+            f"🎬 *PURCHASE SUCCESS*\n\n"
+            f"{_format_user(user_id, name, username)}\n"
+            f"📦 Plan: {plan_name}\n"
+            f"💵 Price: ₹{price}\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(BUSINESS_LOGS_CHANNEL, message)
+    
+    # ==================== ERROR LOGS ====================
+    
+    elif event_type == "PURCHASE_FAILED":
+        reason = payload.get("reason", "Unknown")
+        plan_name = payload.get("plan_name", "Unknown Plan")
+        
+        message = (
+            f"❌ *PURCHASE FAILED*\n\n"
+            f"{_format_user(user_id, name, username)}\n"
+            f"📦 Plan: {plan_name}\n"
+            f"⚠️ Reason: {reason}\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(ERROR_LOGS_CHANNEL, message)
+    
+    elif event_type == "PAYMENT_ERROR":
+        error = payload.get("error", "Unknown Error")
+        order_id = payload.get("order_id", "N/A")
+        
+        message = (
+            f"💳 *PAYMENT ERROR*\n\n"
+            f"{_format_user(user_id, name, username)}\n"
+            f"🆔 Order ID: `{order_id}`\n"
+            f"⚠️ Error: {error}\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(ERROR_LOGS_CHANNEL, message)
+    
+    elif event_type == "SYSTEM_ERROR":
+        error = payload.get("error", "Unknown Error")
+        context = payload.get("context", "N/A")
+        
+        message = (
+            f"🚨 *SYSTEM ERROR*\n\n"
+            f"⚠️ Error: {error}\n"
+            f"📍 Context: {context}\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(ERROR_LOGS_CHANNEL, message)
+    
+    # ==================== REFERRAL LOGS ====================
+    
+    elif event_type == "REFERRAL_JOIN":
+        referrer_id = payload.get("referrer_id")
+        referrer_name = payload.get("referrer_name", "Unknown")
+        
+        # Prevent duplicate logs
+        if user_id in _logged_users:
+            return
+        _logged_users.add(user_id)
+        
+        message = (
+            f"👥 *NEW REFERRAL JOIN*\n\n"
+            f"🆕 New User:\n"
+            f"{_format_user(user_id, name, username)}\n\n"
+            f"👤 Referred By:\n"
+            f"User ID: `{referrer_id}`\n"
+            f"Name: {referrer_name}\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(REFERRAL_LOGS_CHANNEL, message)
+    
+    elif event_type == "REFERRAL_TOPUP":
+        referrer_id = payload.get("referrer_id")
+        referrer_name = payload.get("referrer_name", "Unknown")
+        amount = payload.get("amount", 0)
+        
+        message = (
+            f"💰 *REFERRED USER TOP-UP*\n\n"
+            f"💵 Referred User Topped Up: ₹{amount}\n\n"
+            f"👤 Referred User:\n"
+            f"{_format_user(user_id, name, username)}\n\n"
+            f"👤 Referrer:\n"
+            f"User ID: `{referrer_id}`\n"
+            f"Name: {referrer_name}\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(REFERRAL_LOGS_CHANNEL, message)
+    
+    elif event_type == "REFERRAL_CREDIT":
+        commission = payload.get("commission", 0)
+        level = payload.get("level", 1)
+        buyer_id = payload.get("buyer_id")
+        buyer_name = payload.get("buyer_name", "Unknown")
+        
+        level_text = "Direct (Level 1)" if level == 1 else "Indirect (Level 2)"
+        
+        message = (
+            f"💸 *REFERRAL COMMISSION CREDITED*\n\n"
+            f"👤 Referrer:\n"
+            f"{_format_user(user_id, name, username)}\n\n"
+            f"💰 Commission: ₹{commission}\n"
+            f"📊 Level: {level_text}\n\n"
+            f"👤 Purchase By:\n"
+            f"User ID: `{buyer_id}`\n"
+            f"Name: {buyer_name}\n"
+            f"🕒 Time: `{_format_time()}`"
+        )
+        await _send_to_channel(REFERRAL_LOGS_CHANNEL, message)
 
 
-# ✅ Manual test (run this file directly to verify logs)
-if __name__ == "__main__":
-    test_message = (
-        "🧾 *Test Log Message*\n\n"
-        "This is a sample log entry to verify your OTTOnly bot logging system.\n"
-        "✅ If you see this message in your logs channel, logging works perfectly!"
-    )
-    send_log_sync(test_message)
+# =====================================================
+# LEGACY COMPATIBILITY (Optional - for gradual migration)
+# =====================================================
+
+async def send_log(message: str):
+    """
+    Legacy function - sends to business logs channel.
+    USE log_event() INSTEAD for new code.
+    """
+    await _send_to_channel(BUSINESS_LOGS_CHANNEL, message)
