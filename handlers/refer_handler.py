@@ -3,10 +3,11 @@ import time
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import Dispatcher
-from config.settings import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
+from config.settings import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, FORCE_SUBSCRIBE_CHANNEL_LINK
 from utils.supabase_db import update_wallet, get_user
 from utils.text_utils import toSmallCaps
 from utils.log_utils import log_event
+from utils.force_subscribe import is_user_subscribed
 
 
 def register_wallet_handlers(dp: Dispatcher):
@@ -14,6 +15,25 @@ def register_wallet_handlers(dp: Dispatcher):
     # 💰 Main Add Funds Menu
     @dp.callback_query_handler(lambda c: c.data == "add_funds")
     async def add_funds_menu(callback: types.CallbackQuery):
+        user_id = callback.from_user.id
+        
+        # Force subscribe check
+        is_subscribed = await is_user_subscribed(user_id)
+        if not is_subscribed:
+            await callback.answer("⚠️ Please join our channel first!", show_alert=True)
+            force_subscribe_text = (
+                "👋 Hi, I am OTTSONLY Bot\n\n"
+                "Here you can get YouTube Premium at just ₹15.\n\n"
+                "👉 Join our official channel to access this store."
+            )
+            kb = InlineKeyboardMarkup(row_width=1)
+            kb.add(
+                InlineKeyboardButton("📢 JOIN CHANNEL", url=FORCE_SUBSCRIBE_CHANNEL_LINK),
+                InlineKeyboardButton("✅ VERIFY", callback_data="verify_subscription")
+            )
+            await callback.message.edit_text(force_subscribe_text, reply_markup=kb)
+            return
+        
         keyboard = InlineKeyboardMarkup(row_width=3)
         keyboard.add(
             InlineKeyboardButton(toSmallCaps("₹15"), callback_data="add_15"),

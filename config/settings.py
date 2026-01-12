@@ -71,7 +71,14 @@ PAYMENT_CHECK_INTERVAL = 15  # seconds
 
 
 # ================================
-# 📢 LOGGING CHANNELS
+# � FORCE SUBSCRIBE
+# ================================
+FORCE_SUBSCRIBE_CHANNEL_ID = -1002183043493
+FORCE_SUBSCRIBE_CHANNEL_LINK = "https://t.me/ottsonly01"
+
+
+# ================================
+# �📢 LOGGING CHANNELS
 # ================================
 BUSINESS_LOGS_CHANNEL = -1003638690910  # Wallet top-ups & purchases
 ERROR_LOGS_CHANNEL = -1003597348561     # Failed purchases & system errors

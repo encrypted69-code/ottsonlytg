@@ -12,11 +12,12 @@ from config.settings import (
     UPI_ID,
     MERCHANT_ID,
     PAY_VERIFY_API,
-    LOG_CHANNEL_ID,
+    FORCE_SUBSCRIBE_CHANNEL_LINK,
 )
 from utils.supabase_db import update_wallet, get_user, get_wallet_balance, create_user_if_not_exists
-from utils.log_utils import send_log
+from utils.log_utils import send_log, log_event
 from utils.text_utils import toSmallCaps
+from utils.force_subscribe import is_user_subscribed
 
 
 def register_wallet(dp):
@@ -80,6 +81,25 @@ def register_wallet(dp):
     # ========== MENU: Add Funds ==========
     @dp.callback_query_handler(lambda c: c.data == "menu_add_funds")
     async def menu_add_funds(callback_query: types.CallbackQuery):
+        user_id = callback_query.from_user.id
+        
+        # Force subscribe check
+        is_subscribed = await is_user_subscribed(user_id)
+        if not is_subscribed:
+            await callback_query.answer("⚠️ Please join our channel first!", show_alert=True)
+            force_subscribe_text = (
+                "👋 Hi, I am OTTSONLY Bot\n\n"
+                "Here you can get YouTube Premium at just ₹15.\n\n"
+                "👉 Join our official channel to access this store."
+            )
+            kb = InlineKeyboardMarkup(row_width=1)
+            kb.add(
+                InlineKeyboardButton("📢 JOIN CHANNEL", url=FORCE_SUBSCRIBE_CHANNEL_LINK),
+                InlineKeyboardButton("✅ VERIFY", callback_data="verify_subscription")
+            )
+            await callback_query.message.edit_text(force_subscribe_text, reply_markup=kb)
+            return
+        
         kb = InlineKeyboardMarkup(row_width=1)
         kb.add(
             InlineKeyboardButton(toSmallCaps("✏️ Enter Custom Amount"), callback_data="addfunds_custom")

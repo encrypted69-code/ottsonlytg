@@ -2,13 +2,32 @@ from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from utils.supabase_db import get_user, get_referral_stats
 from utils.text_utils import toSmallCaps
-from config.settings import REFERRAL_BASE_URL
+from config.settings import REFERRAL_BASE_URL, FORCE_SUBSCRIBE_CHANNEL_LINK
+from utils.force_subscribe import is_user_subscribed
 
 
 def register_profile(dp):
     @dp.callback_query_handler(lambda c: c.data == "menu_profile")
     async def menu_profile(callback_query: types.CallbackQuery):
         user_id = callback_query.from_user.id
+        
+        # Force subscribe check
+        is_subscribed = await is_user_subscribed(user_id)
+        if not is_subscribed:
+            await callback_query.answer("⚠️ Please join our channel first!", show_alert=True)
+            force_subscribe_text = (
+                "👋 Hi, I am OTTSONLY Bot\n\n"
+                "Here you can get YouTube Premium at just ₹15.\n\n"
+                "👉 Join our official channel to access this store."
+            )
+            kb = InlineKeyboardMarkup(row_width=1)
+            kb.add(
+                InlineKeyboardButton("📢 JOIN CHANNEL", url=FORCE_SUBSCRIBE_CHANNEL_LINK),
+                InlineKeyboardButton("✅ VERIFY", callback_data="verify_subscription")
+            )
+            await callback_query.message.edit_text(force_subscribe_text, reply_markup=kb)
+            return
+        
         user = get_user(user_id)
 
         if not user:
@@ -50,6 +69,24 @@ def register_profile(dp):
     @dp.callback_query_handler(lambda c: c.data == "menu_refer")
     async def menu_refer(callback_query: types.CallbackQuery):
         user_id = callback_query.from_user.id
+        
+        # Force subscribe check
+        is_subscribed = await is_user_subscribed(user_id)
+        if not is_subscribed:
+            await callback_query.answer("⚠️ Please join our channel first!", show_alert=True)
+            force_subscribe_text = (
+                "👋 Hi, I am OTTSONLY Bot\n\n"
+                "Here you can get YouTube Premium at just ₹15.\n\n"
+                "👉 Join our official channel to access this store."
+            )
+            kb = InlineKeyboardMarkup(row_width=1)
+            kb.add(
+                InlineKeyboardButton("📢 JOIN CHANNEL", url=FORCE_SUBSCRIBE_CHANNEL_LINK),
+                InlineKeyboardButton("✅ VERIFY", callback_data="verify_subscription")
+            )
+            await callback_query.message.edit_text(force_subscribe_text, reply_markup=kb)
+            return
+        
         user = get_user(user_id)
 
         if not user:
