@@ -91,7 +91,7 @@ def register_profile(dp):
             f"• Level 1: 30% (₹28) - Direct Referrals\n"
             f"• Level 2: 10% (₹9) - Indirect Referrals\n\n"
             f"⚡ Earnings Are Credited After 24 Hours\n"
-            f"💸 Withdraw Anytime (Min: ₹500)</b>"
+            f"💸 Withdraw Anytime (Min: ₹100)</b>"
         )
 
         # Inline buttons
@@ -155,9 +155,9 @@ def register_profile(dp):
         stats = get_referral_stats(user_id)
         withdrawable = stats.get("withdrawable_earnings", 0)
 
-        if withdrawable < 500:
+        if withdrawable < 100:
             await callback_query.answer(
-                f"⚠️ Minimum Withdrawal: ₹500\nYou Have: ₹{withdrawable:.2f}", 
+                f"⚠️ Minimum Withdrawal: ₹100\nYou Have: ₹{withdrawable:.2f}", 
                 show_alert=True
             )
             return
@@ -169,7 +169,7 @@ def register_profile(dp):
             f"1️⃣ Click Request Withdrawal Below\n"
             f"2️⃣ Provide Your UPI ID\n"
             f"3️⃣ We'll Process Within 24 Hours\n\n"
-            f"⚠️ Minimum: ₹500\n"
+            f"⚠️ Minimum: ₹100\n"
             f"⚡ Processing Time: 24-48 Hours</b>"
         )
 
