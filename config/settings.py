@@ -18,31 +18,31 @@ DATA_FILE = "data/users.json"
 PLANS = {
     "netflix_4k": {
         "name": "Netflix 4K (Single Device)",
-        "price": 99,
+        "price": 75,
         "duration_days": 30,
         "image": "images/netflix.jpg"
     },
     "prime_video": {
         "name": "Amazon Prime Video",
-        "price": 45,
+        "price": 35,
         "duration_days": 30,
         "image": "images/prime.jpg"
     },
     "youtube": {
         "name": "YouTube Premium + Music",
-        "price": 15,
+        "price": 25,
         "duration_days": 30,
         "image": "images/youtube.jpg"
     },
     "pornhub": {
         "name": "Pornhub Premium",
-        "price": 69,
+        "price": 60,
         "duration_days": 30,
         "image": "images/pornhub.jpg"
     },
     "combo": {
         "name": "OTT Combo Pack",
-        "price": 135,
+        "price": 125,
         "duration_days": 30,
         "image": "images/combo.jpg"
     }

@@ -76,7 +76,7 @@ def register_profile(dp):
             await callback_query.answer("⚠️ Please join our channel first!", show_alert=True)
             force_subscribe_text = (
                 "👋 Hi, I am OTTSONLY Bot\n\n"
-                "Here you can get YouTube Premium at just ₹15.\n\n"
+                "Here you can get YouTube Premium at just ₹25.\n\n"
                 "👉 Join our official channel to access this store."
             )
             kb = InlineKeyboardMarkup(row_width=1)
@@ -118,7 +118,7 @@ def register_profile(dp):
             f"{referral_link}\n\n"
             f"📖 How It Works:\n"
             f"1️⃣ Share Your Link With Friends\n"
-            f"2️⃣ They Buy OTT Subscription (₹135)\n"
+            f"2️⃣ They Buy OTT Subscription (₹125)\n"
             f"3️⃣ You Earn ₹28 Instantly!\n"
             f"4️⃣ Your Referrals Refer Someone → You Get ₹9 More!\n\n"
             f"💡 2-Level Earning System:\n"

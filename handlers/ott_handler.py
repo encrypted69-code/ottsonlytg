@@ -35,7 +35,7 @@ def register_ott(dp):
             await callback_query.answer("⚠️ Please join our channel first!", show_alert=True)
             force_subscribe_text = (
                 "👋 Hi, I am OTTSONLY Bot\n\n"
-                "Here you can get YouTube Premium at just ₹15.\n\n"
+                "Here you can get YouTube Premium at just ₹25.\n\n"
                 "👉 Join our official channel to access this store."
             )
             kb = InlineKeyboardMarkup(row_width=1)
@@ -72,7 +72,7 @@ def register_ott(dp):
             f"• Private Screen\n"
             f"• TV/Laptop Supported\n"
             f"• 4K + HDR\n"
-            f"• Price : 99₹ / Month\n\n"
+            f"• Price : 75₹ / Month\n\n"
             f"🕒 Validity: 1 Month\n"
             f"💳 PRICE: ₹{price}</b>"
         )
@@ -109,7 +109,7 @@ def register_ott(dp):
             f"• Background Play\n"
             f"• YouTube Music\n"
             f"• On your mail\n"
-            f"• Price 15₹/ Month\n\n"
+            f"• Price 25₹/ Month\n\n"
             f"🕒 Validity: 1 Month\n"
             f"💳 PRICE: ₹{price}</b>"
         )
@@ -145,7 +145,7 @@ def register_ott(dp):
             f"• Private Screen\n"
             f"• TV/Laptop Supported\n"
             f"• 4K + HDR\n"
-            f"• Price: 99₹ / Month\n\n"
+            f"• Price: 75₹ / Month\n\n"
             f"🎬 PRIME VIDEO\n"
             f"• Private Single Screen\n"
             f"• HD 1080p\n"
@@ -156,7 +156,7 @@ def register_ott(dp):
             f"• Background Play\n"
             f"• YouTube Music\n"
             f"• On your mail\n"
-            f"• Price: 15₹/ Month\n\n"
+            f"• Price: 25₹/ Month\n\n"
             f"+\n\n"
             f"🔞 FREE: PORNHUB PREMIUM\n"
             f"• Full Access\n"

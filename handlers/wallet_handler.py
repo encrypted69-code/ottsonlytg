@@ -89,7 +89,7 @@ def register_wallet(dp):
             await callback_query.answer("⚠️ Please join our channel first!", show_alert=True)
             force_subscribe_text = (
                 "👋 Hi, I am OTTSONLY Bot\n\n"
-                "Here you can get YouTube Premium at just ₹15.\n\n"
+                "Here you can get YouTube Premium at just ₹25.\n\n"
                 "👉 Join our official channel to access this store."
             )
             kb = InlineKeyboardMarkup(row_width=1)
